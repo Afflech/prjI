@@ -21,7 +21,7 @@ Acceptance:
 
 ## Phase 1 - Runnable Skeleton
 
-Trang thai: Planned.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -37,7 +37,7 @@ Acceptance:
 
 ## Phase 2 - Backend Core
 
-Trang thai: Planned.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -50,7 +50,7 @@ Acceptance:
 
 ## Phase 3 - Ingestion And Retrieval
 
-Trang thai: Planned.
+Trang thai: Next.
 
 Muc tieu:
 

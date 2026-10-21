@@ -6,9 +6,9 @@ against enabled sources with citations back to original chunks.
 
 ## Current Status
 
-This is a new project. The repository currently contains planning and baseline
-documentation only; the backend, frontend, ingestion pipeline, retrieval system,
-and Docker setup have not been implemented yet.
+Phase 2 backend core is in place. The backend exposes notebook, pasted source,
+and mock chat APIs backed by SQLite. Ingestion, retrieval citations, full
+frontend workflows, and Docker features are planned for later phases.
 
 Start with:
 
@@ -38,8 +38,51 @@ Start with:
 
 ## Run
 
-There is no runnable app yet. Run instructions will be added after Phase 1
-creates the backend and frontend skeletons.
+Backend:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/uvicorn app.main:app --reload --port 8000 --app-dir backend
+```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Backend smoke test:
+
+```bash
+.venv/bin/python -m pip install -r backend/requirements-dev.txt
+.venv/bin/python -m pytest backend/tests
+```
+
+Phase 2 API examples:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/notebooks \
+  -H 'content-type: application/json' \
+  -d '{"title":"Algorithms"}'
+
+curl http://127.0.0.1:8000/api/notebooks
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Build check:
+
+```bash
+cd frontend
+npm run build
+```
 
 ## Project Tracking
 

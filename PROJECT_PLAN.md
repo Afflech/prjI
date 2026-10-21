@@ -77,8 +77,7 @@ Viec can lam:
   LLM provider.
 - Tao `docs/project-roadmap.md`: phase plan va acceptance theo phase.
 - Tao `docs/mvp-smoke-test.md`: checklist se dung sau khi co app.
-- Cap nhat `tien_do_theo_phase.md` thanh bao cao baseline, khong ghi viec chua
-  lam la da xong.
+- Tao report baseline trong `reports/`, khong ghi viec chua lam la da xong.
 
 Acceptance:
 
@@ -87,6 +86,8 @@ Acceptance:
 - Nguoi doc biet viec tiep theo la Phase 1 skeleton.
 
 ### Phase 1 - Runnable skeleton
+
+Trang thai: Done.
 
 Muc tieu:
 
@@ -108,6 +109,8 @@ Acceptance:
 
 ### Phase 2 - Backend core
 
+Trang thai: Done.
+
 Muc tieu:
 
 - Co API va database cho flow notebook/source/chat mock.
@@ -126,6 +129,8 @@ Acceptance:
 - Source co status va enabled flag de dung cho phase retrieval.
 
 ### Phase 3 - Ingestion va retrieval
+
+Trang thai: Next.
 
 Muc tieu:
 

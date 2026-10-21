@@ -1,7 +1,8 @@
 # Design - Mini NotebookLM
 
 Ngay cap nhat: 2026-10-21
-Trang thai: Target design cho du an moi, chua co implementation.
+Trang thai: Phase 2 da co backend core voi SQLite va mock chat; ingestion,
+retrieval citation, va frontend MVP van la target design cho phase sau.
 
 ## 1. Product Goal
 
@@ -13,13 +14,16 @@ tra loi can dua tren source da them vao notebook va co citation de kiem chung.
 Target app gom cac phan:
 
 - Frontend React/Vite cho thao tac notebook, source, chat, va evidence panel.
-- Backend FastAPI cung cap REST API.
-- SQLite luu notebooks, sources, chunks, messages.
+  Phase 1 hien co app shell toi thieu.
+- Backend FastAPI cung cap REST API. Phase 2 hien co `/health`, notebook,
+  pasted source, va mock chat endpoints.
+- SQLite luu notebooks, sources, chunks, messages. Phase 2 da tao schema.
 - Ingestion pipeline extract text, chunk, embed, va luu metadata.
 - Retrieval layer tim chunks lien quan trong enabled sources.
 - LLM provider abstraction: mock truoc, Gemini sau.
 
-Luon phan biet target design voi trang thai thuc te: Phase 0 chua co app code.
+Luon phan biet target design voi trang thai thuc te: Phase 2 co backend
+notebook/source/chat mock, chua co ingestion/retrieval citation that.
 
 ## 3. Backend Target
 
