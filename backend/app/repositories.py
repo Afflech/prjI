@@ -153,6 +153,54 @@ class SourceRepository:
         return cursor.rowcount > 0
 
 
+class ChunkRepository:
+    def __init__(self, db: sqlite3.Connection):
+        self.db = db
+
+    def create_many(self, chunks: list[dict[str, Any]]) -> None:
+        if not chunks:
+            return
+        self.db.executemany(
+            """
+            INSERT INTO chunks (source_id, notebook_id, page, text, embedding)
+            VALUES (:source_id, :notebook_id, :page, :text, :embedding)
+            """,
+            chunks,
+        )
+        self.db.commit()
+
+    def get(self, chunk_id: int) -> dict[str, Any] | None:
+        row = self.db.execute(
+            """
+            SELECT chunks.id, chunks.source_id, chunks.notebook_id, chunks.page,
+                   chunks.text, chunks.embedding, chunks.created_at,
+                   sources.title AS source_title
+            FROM chunks
+            JOIN sources ON sources.id = chunks.source_id
+            WHERE chunks.id = ?
+            """,
+            (chunk_id,),
+        ).fetchone()
+        return row_to_dict(row)
+
+    def list_searchable_for_notebook(self, notebook_id: int) -> list[dict[str, Any]]:
+        rows = self.db.execute(
+            """
+            SELECT chunks.id, chunks.source_id, chunks.notebook_id, chunks.page,
+                   chunks.text, chunks.embedding, chunks.created_at,
+                   sources.title AS source_title
+            FROM chunks
+            JOIN sources ON sources.id = chunks.source_id
+            WHERE chunks.notebook_id = ?
+              AND sources.enabled = 1
+              AND sources.status = 'ready'
+            ORDER BY chunks.id ASC
+            """,
+            (notebook_id,),
+        ).fetchall()
+        return [row_to_dict(row) for row in rows]
+
+
 class MessageRepository:
     def __init__(self, db: sqlite3.Connection):
         self.db = db

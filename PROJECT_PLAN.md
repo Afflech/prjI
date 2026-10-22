@@ -1,6 +1,6 @@
 # Project Plan - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-21
+Ngay cap nhat: 2026-10-22
 
 Tai lieu nay la source of truth cho viec trien khai Mini NotebookLM tu dau.
 Truoc moi dot code, update tien do, hoac audit, can doc file nay truoc de nam
@@ -130,7 +130,7 @@ Acceptance:
 
 ### Phase 3 - Ingestion va retrieval
 
-Trang thai: Next.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -151,6 +151,8 @@ Acceptance:
 - Disabled source khong duoc retrieve/cite.
 
 ### Phase 4 - Frontend MVP
+
+Trang thai: Next.
 
 Muc tieu:
 

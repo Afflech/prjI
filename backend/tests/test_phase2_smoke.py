@@ -80,7 +80,7 @@ async def run_smoke_test(tmp_path, monkeypatch):
         )
         assert chat_response.status_code == 200
         chat = chat_response.json()
-        assert "Mock answer" in chat["answer"]
+        assert "Retrieval preview answer" in chat["answer"]
         assert chat["user_message"]["role"] == "user"
         assert chat["assistant_message"]["role"] == "assistant"
 

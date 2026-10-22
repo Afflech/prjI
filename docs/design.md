@@ -1,8 +1,9 @@
 # Design - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-21
-Trang thai: Phase 2 da co backend core voi SQLite va mock chat; ingestion,
-retrieval citation, va frontend MVP van la target design cho phase sau.
+Ngay cap nhat: 2026-10-22
+Trang thai: Phase 3 da co backend core voi SQLite, pasted source ingestion,
+retrieval-preview chat, citations, va chunk evidence API. Frontend MVP van la
+target design cho phase sau.
 
 ## 1. Product Goal
 
@@ -15,15 +16,17 @@ Target app gom cac phan:
 
 - Frontend React/Vite cho thao tac notebook, source, chat, va evidence panel.
   Phase 1 hien co app shell toi thieu.
-- Backend FastAPI cung cap REST API. Phase 2 hien co `/health`, notebook,
-  pasted source, va mock chat endpoints.
-- SQLite luu notebooks, sources, chunks, messages. Phase 2 da tao schema.
-- Ingestion pipeline extract text, chunk, embed, va luu metadata.
-- Retrieval layer tim chunks lien quan trong enabled sources.
+- Backend FastAPI cung cap REST API. Phase 3 hien co `/health`, notebook,
+  pasted source, chat, va evidence endpoints.
+- SQLite luu notebooks, sources, chunks, messages.
+- Ingestion pipeline hien chunk pasted text voi overlap, embed local, va luu
+  metadata.
+- Retrieval layer tim chunks lien quan trong enabled ready sources.
 - LLM provider abstraction: mock truoc, Gemini sau.
 
-Luon phan biet target design voi trang thai thuc te: Phase 2 co backend
-notebook/source/chat mock, chua co ingestion/retrieval citation that.
+Luon phan biet target design voi trang thai thuc te: Phase 3 co backend
+retrieval/citation cho pasted text; upload TXT/MD/PDF va frontend day du chua
+lam.
 
 ## 3. Backend Target
 
@@ -60,7 +63,8 @@ MVP dung local hash embeddings de co demo offline. Retrieval target:
 - Chi retrieve chunks thuoc notebook dang chat.
 - Chi retrieve sources co `enabled = true`.
 - Bo qua source chua ready hoac failed.
-- Dung FAISS neu co san, fallback NumPy cosine.
+- Dung local hash embedding va cosine stdlib hien tai; FAISS/NumPy co the them
+  sau neu can.
 
 Citation target gom chunk id, source id, source title, page neu co, va quote
 ngan de UI hien evidence.
@@ -87,7 +91,7 @@ UI target gom 3 cot:
 - Chat: message history, composer, loading/error state.
 - Evidence: citation detail va chunk text.
 
-Phase 4 moi implement UI day du. Phase 1 chi can app shell toi thieu.
+Phase 4 moi implement UI day du. Phase 1 chi co app shell toi thieu.
 
 ## 8. Non-goals For Early MVP
 

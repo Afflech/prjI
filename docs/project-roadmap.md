@@ -1,6 +1,6 @@
 # Project Roadmap - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-21
+Ngay cap nhat: 2026-10-22
 Trang thai: Roadmap cho du an moi.
 
 ## Phase 0 - Project Docs Baseline
@@ -50,7 +50,7 @@ Acceptance:
 
 ## Phase 3 - Ingestion And Retrieval
 
-Trang thai: Next.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -65,7 +65,7 @@ Acceptance:
 
 ## Phase 4 - Frontend MVP
 
-Trang thai: Planned.
+Trang thai: Next.
 
 Muc tieu:
 

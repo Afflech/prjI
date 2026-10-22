@@ -6,9 +6,10 @@ against enabled sources with citations back to original chunks.
 
 ## Current Status
 
-Phase 2 backend core is in place. The backend exposes notebook, pasted source,
-and mock chat APIs backed by SQLite. Ingestion, retrieval citations, full
-frontend workflows, and Docker features are planned for later phases.
+Phase 3 ingestion and retrieval is in place. The backend exposes notebook,
+pasted source, chunking, retrieval-preview chat, citations, and chunk evidence
+APIs backed by SQLite. Full frontend workflows and Docker features are planned
+for later phases.
 
 Start with:
 
@@ -59,7 +60,7 @@ Backend smoke test:
 .venv/bin/python -m pytest backend/tests
 ```
 
-Phase 2 API examples:
+API examples:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/notebooks \
@@ -67,6 +68,18 @@ curl -X POST http://127.0.0.1:8000/api/notebooks \
   -d '{"title":"Algorithms"}'
 
 curl http://127.0.0.1:8000/api/notebooks
+```
+
+After creating a notebook, add a pasted source and chat:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/notebooks/1/sources \
+  -H 'content-type: application/json' \
+  -d '{"title":"Trees.md","content":"AVL trees rotate to stay balanced."}'
+
+curl -X POST http://127.0.0.1:8000/api/notebooks/1/chat \
+  -H 'content-type: application/json' \
+  -d '{"question":"How do AVL trees stay balanced?"}'
 ```
 
 Frontend:

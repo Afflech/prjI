@@ -75,6 +75,16 @@ class SourceResponse(BaseModel):
     updated_at: str
 
 
+class ChunkResponse(BaseModel):
+    id: int
+    source_id: int
+    notebook_id: int
+    source_title: str
+    page: int | None
+    text: str
+    created_at: str
+
+
 class MessageResponse(BaseModel):
     id: int
     notebook_id: int

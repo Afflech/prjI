@@ -6,6 +6,7 @@ from app.database import get_db
 from app.schemas import (
     ChatRequest,
     ChatResponse,
+    ChunkResponse,
     MessageResponse,
     NotebookCreate,
     NotebookResponse,
@@ -14,7 +15,12 @@ from app.schemas import (
     SourceResponse,
     SourceUpdate,
 )
-from app.services import ChatService, NotebookService, SourceService
+from app.services import (
+    ChatService,
+    NotebookService,
+    RetrievalService,
+    SourceService,
+)
 
 
 router = APIRouter(prefix="/api")
@@ -117,3 +123,11 @@ async def list_messages(
     db: sqlite3.Connection = Depends(get_db),
 ) -> list[dict]:
     return ChatService(db).list_messages(notebook_id)
+
+
+@router.get("/chunks/{chunk_id}", response_model=ChunkResponse)
+async def get_chunk(
+    chunk_id: int,
+    db: sqlite3.Connection = Depends(get_db),
+) -> dict:
+    return RetrievalService(db).get_chunk(chunk_id)
