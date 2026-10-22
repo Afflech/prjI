@@ -74,6 +74,7 @@ class SourceRepository:
         notebook_id: int,
         title: str,
         content: str,
+        commit: bool = True,
     ) -> dict[str, Any]:
         cursor = self.db.execute(
             """
@@ -82,8 +83,26 @@ class SourceRepository:
             """,
             (notebook_id, title, content),
         )
-        self.db.commit()
+        if commit:
+            self.db.commit()
         return self.get(cursor.lastrowid)
+
+    def list_ready_without_chunks(self) -> list[dict[str, Any]]:
+        rows = self.db.execute(
+            """
+            SELECT sources.id, sources.notebook_id, sources.title, sources.type,
+                   sources.content, sources.status, sources.enabled, sources.error,
+                   sources.created_at, sources.updated_at
+            FROM sources
+            LEFT JOIN chunks ON chunks.source_id = sources.id
+            WHERE sources.status = 'ready'
+              AND sources.content != ''
+            GROUP BY sources.id
+            HAVING COUNT(chunks.id) = 0
+            ORDER BY sources.id ASC
+            """
+        ).fetchall()
+        return [row_to_dict(row) for row in rows]
 
     def list_for_notebook(self, notebook_id: int) -> list[dict[str, Any]]:
         rows = self.db.execute(
@@ -157,7 +176,7 @@ class ChunkRepository:
     def __init__(self, db: sqlite3.Connection):
         self.db = db
 
-    def create_many(self, chunks: list[dict[str, Any]]) -> None:
+    def create_many(self, chunks: list[dict[str, Any]], commit: bool = True) -> None:
         if not chunks:
             return
         self.db.executemany(
@@ -167,7 +186,8 @@ class ChunkRepository:
             """,
             chunks,
         )
-        self.db.commit()
+        if commit:
+            self.db.commit()
 
     def get(self, chunk_id: int) -> dict[str, Any] | None:
         row = self.db.execute(
@@ -211,6 +231,7 @@ class MessageRepository:
         role: str,
         content: str,
         citations: list[dict[str, Any]] | None = None,
+        commit: bool = True,
     ) -> dict[str, Any]:
         cursor = self.db.execute(
             """
@@ -219,7 +240,8 @@ class MessageRepository:
             """,
             (notebook_id, role, content, json.dumps(citations or [])),
         )
-        self.db.commit()
+        if commit:
+            self.db.commit()
         return self.get(cursor.lastrowid)
 
     def get(self, message_id: int) -> dict[str, Any] | None:

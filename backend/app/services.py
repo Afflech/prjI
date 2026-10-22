@@ -19,6 +19,7 @@ EMBEDDING_DIMENSIONS = 64
 CHUNK_WORDS = 90
 CHUNK_OVERLAP = 20
 MAX_RETRIEVAL_RESULTS = 3
+MIN_SEARCH_TOKEN_LENGTH = 2
 
 
 def tokenize(text: str) -> list[str]:
@@ -26,7 +27,7 @@ def tokenize(text: str) -> list[str]:
 
 
 def searchable_tokens(text: str) -> set[str]:
-    return {token for token in tokenize(text) if len(token) > 2}
+    return {token for token in tokenize(text) if len(token) >= MIN_SEARCH_TOKEN_LENGTH}
 
 
 def embed_text(text: str) -> list[float]:
@@ -59,6 +60,19 @@ def chunk_text(text: str) -> list[str]:
         if start + CHUNK_WORDS >= len(words):
             break
     return chunks
+
+
+def chunk_records_for_source(source: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {
+            "source_id": source["id"],
+            "notebook_id": source["notebook_id"],
+            "page": None,
+            "text": chunk,
+            "embedding": json.dumps(embed_text(chunk)),
+        }
+        for chunk in chunk_text(source.get("content", ""))
+    ]
 
 
 def citation_from_chunk(chunk: dict[str, Any], score: float) -> dict[str, Any]:
@@ -122,19 +136,33 @@ class SourceService:
     ) -> dict[str, Any]:
         if self.notebooks.get(notebook_id) is None:
             raise not_found("Notebook", notebook_id)
-        source = self.sources.create_pasted(notebook_id, title.strip(), content)
-        chunk_records = [
-            {
-                "source_id": source["id"],
-                "notebook_id": notebook_id,
-                "page": None,
-                "text": chunk,
-                "embedding": json.dumps(embed_text(chunk)),
-            }
-            for chunk in chunk_text(content)
-        ]
-        self.chunks.create_many(chunk_records)
-        return source
+        try:
+            source = self.sources.create_pasted(
+                notebook_id,
+                title.strip(),
+                content,
+                commit=False,
+            )
+            chunk_records = chunk_records_for_source({**source, "content": content})
+            self.chunks.create_many(chunk_records, commit=False)
+            self.sources.db.commit()
+            return self.sources.get(source["id"])
+        except Exception:
+            self.sources.db.rollback()
+            raise
+
+    def backfill_missing_chunks(self) -> int:
+        indexed = 0
+        try:
+            for source in self.sources.list_ready_without_chunks():
+                chunk_records = chunk_records_for_source(source)
+                self.chunks.create_many(chunk_records, commit=False)
+                indexed += len(chunk_records)
+            self.sources.db.commit()
+        except Exception:
+            self.sources.db.rollback()
+            raise
+        return indexed
 
     def list_for_notebook(self, notebook_id: int) -> list[dict[str, Any]]:
         if self.notebooks.get(notebook_id) is None:
@@ -173,11 +201,6 @@ class ChatService:
         if self.notebooks.get(notebook_id) is None:
             raise not_found("Notebook", notebook_id)
 
-        user_message = self.messages.create(
-            notebook_id=notebook_id,
-            role="user",
-            content=question,
-        )
         retrieved = self.retrieval.search(notebook_id, question)
         citations = [
             citation_from_chunk(chunk, score)
@@ -197,12 +220,24 @@ class ChatService:
                 f"Question: {question}"
             )
 
-        assistant_message = self.messages.create(
-            notebook_id=notebook_id,
-            role="assistant",
-            content=answer,
-            citations=citations,
-        )
+        try:
+            user_message = self.messages.create(
+                notebook_id=notebook_id,
+                role="user",
+                content=question,
+                commit=False,
+            )
+            assistant_message = self.messages.create(
+                notebook_id=notebook_id,
+                role="assistant",
+                content=answer,
+                citations=citations,
+                commit=False,
+            )
+            self.messages.db.commit()
+        except Exception:
+            self.messages.db.rollback()
+            raise
         return {
             "answer": answer,
             "citations": citations,
@@ -228,10 +263,12 @@ class RetrievalService:
     ) -> list[tuple[dict[str, Any], float]]:
         query_vector = embed_text(query)
         query_tokens = searchable_tokens(query)
+        if not query_tokens:
+            return []
         scored: list[tuple[dict[str, Any], float]] = []
         for chunk in self.chunks.list_searchable_for_notebook(notebook_id):
             chunk_tokens = searchable_tokens(chunk["text"])
-            if query_tokens and not query_tokens.intersection(chunk_tokens):
+            if not query_tokens.intersection(chunk_tokens):
                 continue
             chunk_vector = json.loads(chunk["embedding"] or "[]")
             score = cosine_similarity(query_vector, chunk_vector)

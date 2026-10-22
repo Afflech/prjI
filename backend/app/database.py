@@ -77,3 +77,6 @@ async def get_db() -> AsyncIterator[sqlite3.Connection]:
 def init_db() -> None:
     with connect_db() as connection:
         connection.executescript(SCHEMA)
+        from app.services import SourceService
+
+        SourceService(connection).backfill_missing_chunks()

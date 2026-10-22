@@ -54,7 +54,7 @@ Trang thai: Done.
 
 Muc tieu:
 
-- Ingest pasted text/TXT/MD, sau do PDF.
+- Ingest pasted text; TXT/MD/PDF upload se lam sau khi pasted text on dinh.
 - Chunking, embeddings/retrieval local, citation/evidence API.
 
 Acceptance:
@@ -75,6 +75,7 @@ Acceptance:
 
 - Browser flow notebook -> source -> chat -> citation -> evidence chay duoc.
 - Co loading/error state co ban.
+- Upload UI chi bat khi backend da co endpoint upload.
 
 ## Phase 5 - Docker And Gemini
 

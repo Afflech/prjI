@@ -134,12 +134,12 @@ Trang thai: Done.
 
 Muc tieu:
 
-- Co retrieval co citation dua tren source da ingest.
+- Co retrieval co citation dua tren pasted text da ingest.
 
 Viec can lam:
 
-- Ho tro pasted text/TXT/MD truoc.
-- Them PDF text extraction sau khi TXT/MD on dinh.
+- Ho tro pasted text truoc.
+- Them TXT/MD/PDF upload sau khi pasted text retrieval on dinh.
 - Chunking co overlap va metadata source/page neu co.
 - Local embeddings/retrieval voi NumPy fallback; FAISS optional.
 - API citation/evidence tra chunk goc.
