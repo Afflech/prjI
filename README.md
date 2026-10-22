@@ -6,10 +6,10 @@ against enabled sources with citations back to original chunks.
 
 ## Current Status
 
-Phase 3 ingestion and retrieval is in place. The backend exposes notebook,
-pasted source, chunking, retrieval-preview chat, citations, and chunk evidence
-APIs backed by SQLite. Full frontend workflows and Docker features are planned
-for later phases.
+Phase 3 ingestion and retrieval is in progress. The backend exposes notebook,
+pasted source, TXT/MD raw upload, chunking, retrieval-preview chat, citations,
+and chunk evidence APIs backed by SQLite. Full frontend workflows, PDF, and
+Docker features are planned for later phases.
 
 Start with:
 
@@ -21,11 +21,10 @@ Start with:
 
 ## Target Stack
 
-- Backend: FastAPI, SQLite, local hash embeddings for the MVP, Gemini provider
-  abstraction later.
+- Backend: FastAPI, SQLite, local hash embeddings for offline MVP tests, and
+  an HTTP embedding provider abstraction.
 - Frontend: React + Vite.
-- Retrieval: chunking with overlap, FAISS search when available, NumPy cosine
-  fallback.
+- Retrieval: chunking with overlap, Unicode token gating, and cosine scoring.
 - LLM: mock/retrieval-preview provider first, Gemini later.
 
 ## Target MVP Features
@@ -80,6 +79,27 @@ curl -X POST http://127.0.0.1:8000/api/notebooks/1/sources \
 curl -X POST http://127.0.0.1:8000/api/notebooks/1/chat \
   -H 'content-type: application/json' \
   -d '{"question":"How do AVL trees stay balanced?"}'
+```
+
+Upload a TXT/MD source with a raw UTF-8 body:
+
+```bash
+curl -X POST 'http://127.0.0.1:8000/api/notebooks/1/sources/upload?filename=notes.md' \
+  -H 'content-type: text/markdown; charset=utf-8' \
+  --data-binary @notes.md
+```
+
+Embedding configuration:
+
+```bash
+# Default, offline and used by tests
+EMBEDDING_PROVIDER=hash
+
+# OpenAI-compatible HTTP embeddings
+EMBEDDING_PROVIDER=openai
+EMBEDDING_API_KEY=...
+EMBEDDING_MODEL=text-embedding-3-small
+EMBEDDING_BASE_URL=https://api.openai.com/v1/embeddings
 ```
 
 Frontend:

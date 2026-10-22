@@ -1,6 +1,6 @@
 # MVP Smoke Test Checklist - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-21
+Ngay cap nhat: 2026-10-22
 Trang thai: Checklist target, dung sau khi co implementation.
 
 ## Phase 1 Skeleton
@@ -27,10 +27,11 @@ Trang thai: Checklist target, dung sau khi co implementation.
 
 - Ingest TXT/MD or pasted text.
 - Chunk records are created.
+- Unicode/Vietnamese query retrieves relevant chunk.
 - Query retrieves relevant chunk.
 - Citation includes chunk id and source id.
 - Disabled source is excluded from retrieval.
-- Failed source has visible error status.
+- Ingestion failure does not leave a ready source without chunks.
 
 ## Phase 4 Frontend MVP
 

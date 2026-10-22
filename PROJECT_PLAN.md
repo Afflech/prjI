@@ -41,8 +41,8 @@ Noi dung README target:
 - Ten du an: Mini NotebookLM.
 - Mo ta ngan: Project I web app cho source-grounded study Q&A.
 - Stack target:
-  - Backend: FastAPI, SQLite, local hash embeddings cho MVP, Gemini provider
-    abstraction.
+  - Backend: FastAPI, SQLite, local hash embeddings cho MVP, HTTP embedding
+    provider abstraction.
   - Frontend: React + Vite.
   - Retrieval: chunking with overlap, FAISS khi co san, NumPy cosine fallback.
 - Run target sau khi co code:
@@ -52,7 +52,7 @@ Noi dung README target:
     ton tai.
 - MVP features target:
   - Create, rename, delete notebooks.
-  - Upload PDF/TXT/MD va paste text sources.
+  - Upload TXT/MD va paste text sources truoc; PDF sau khi text flow on dinh.
   - Background ingestion voi text extraction, chunking, embeddings, vector
     storage.
   - Enable/disable individual sources truoc khi chat.
@@ -130,18 +130,20 @@ Acceptance:
 
 ### Phase 3 - Ingestion va retrieval
 
-Trang thai: Done.
+Trang thai: In progress.
 
 Muc tieu:
 
-- Co retrieval co citation dua tren pasted text da ingest.
+- Co retrieval co citation dua tren pasted text va TXT/MD da ingest.
 
 Viec can lam:
 
-- Ho tro pasted text truoc.
-- Them TXT/MD/PDF upload sau khi pasted text retrieval on dinh.
+- Ho tro pasted text va TXT/MD upload.
+- PDF text extraction de sau khi TXT/MD on dinh.
 - Chunking co overlap va metadata source/page neu co.
-- Local embeddings/retrieval voi NumPy fallback; FAISS optional.
+- Unicode tokenizer cho tieng Viet va text khong phai ASCII.
+- Embedding provider interface: local hash fallback offline va HTTP provider
+  that khi duoc cau hinh.
 - API citation/evidence tra chunk goc.
 
 Acceptance:
@@ -149,6 +151,7 @@ Acceptance:
 - Hoi cau lien quan den source thi retrieve duoc chunk phu hop.
 - Citation co chunk id, source id, source title, page neu co.
 - Disabled source khong duoc retrieve/cite.
+- Upload TXT/MD tao source ready va retrieve duoc noi dung Unicode.
 
 ### Phase 4 - Frontend MVP
 
@@ -241,7 +244,8 @@ Quy uoc trang thai:
 - Phase 0: doc review, dam bao tai lieu khong gia dinh code da ton tai.
 - Phase 1: backend `/health` OK, frontend build/dev OK.
 - Phase 2: backend smoke test notebook/source/chat mock.
-- Phase 3: retrieval/citation smoke test.
+- Phase 3: retrieval/citation smoke test, TXT/MD upload, Unicode retrieval, va
+  regression tests cho failure paths.
 - Phase 4: manual browser checklist.
 - Phase 5: Docker healthcheck va Gemini config check.
 - Phase 6: evaluation top-k hit rate va demo checklist.

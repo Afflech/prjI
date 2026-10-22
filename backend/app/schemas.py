@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.limits import MAX_CHAT_QUESTION_CHARS, MAX_SOURCE_CONTENT_CHARS
+
 
 def strip_non_empty(value: str) -> str:
     stripped = value.strip()
@@ -37,7 +39,7 @@ class NotebookResponse(BaseModel):
 
 class SourceCreate(BaseModel):
     title: str = Field(min_length=1, max_length=160)
-    content: str = Field(min_length=1)
+    content: str = Field(min_length=1, max_length=MAX_SOURCE_CONTENT_CHARS)
 
     @field_validator("title", "content")
     @classmethod
@@ -95,7 +97,7 @@ class MessageResponse(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    question: str = Field(min_length=1)
+    question: str = Field(min_length=1, max_length=MAX_CHAT_QUESTION_CHARS)
 
     @field_validator("question")
     @classmethod

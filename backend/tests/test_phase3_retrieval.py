@@ -75,3 +75,57 @@ async def run_retrieval_test(tmp_path, monkeypatch):
         disabled_chat = disabled_chat_response.json()
         assert disabled_chat["citations"] == []
         assert "no relevant enabled source chunks" in disabled_chat["answer"]
+
+
+def test_upload_txt_md_and_unicode_retrieval(tmp_path, monkeypatch):
+    asyncio.run(run_upload_unicode_test(tmp_path, monkeypatch))
+
+
+async def run_upload_unicode_test(tmp_path, monkeypatch):
+    monkeypatch.setenv("NOTEBOOKLM_DB_PATH", str(tmp_path / "upload.db"))
+    backend_dir = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(backend_dir))
+
+    main = importlib.import_module("app.main")
+    database = importlib.import_module("app.database")
+    database.init_db()
+
+    transport = ASGITransport(app=main.app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        notebook_response = await client.post(
+            "/api/notebooks",
+            json={"title": "Tieng Viet"},
+        )
+        assert notebook_response.status_code == 201
+        notebook = notebook_response.json()
+
+        upload_response = await client.post(
+            f"/api/notebooks/{notebook['id']}/sources/upload",
+            params={"filename": "do-thi.md"},
+            content=(
+                "# Do thi\n\n"
+                "Đồ thị có đỉnh và cạnh. Thuật toán BFS duyệt các đỉnh theo lớp."
+            ).encode("utf-8"),
+            headers={"content-type": "text/markdown; charset=utf-8"},
+        )
+        assert upload_response.status_code == 201
+        source = upload_response.json()
+        assert source["type"] == "markdown_file"
+
+        chat_response = await client.post(
+            f"/api/notebooks/{notebook['id']}/chat",
+            json={"question": "BFS duyệt đồ thị như thế nào?"},
+        )
+        assert chat_response.status_code == 200
+        chat = chat_response.json()
+        assert chat["citations"]
+        assert chat["citations"][0]["source_id"] == source["id"]
+        assert "Đồ thị" in chat["citations"][0]["quote"]
+
+        invalid_upload = await client.post(
+            f"/api/notebooks/{notebook['id']}/sources/upload",
+            params={"filename": "scan.pdf"},
+            content=b"PDF comes later",
+            headers={"content-type": "application/pdf"},
+        )
+        assert invalid_upload.status_code == 415

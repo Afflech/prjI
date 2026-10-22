@@ -1,7 +1,7 @@
-import os
 import sqlite3
 from collections.abc import AsyncIterator
 from pathlib import Path
+import os
 
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "app.db"
@@ -60,7 +60,7 @@ def database_path() -> Path:
 def connect_db() -> sqlite3.Connection:
     path = database_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
+    connection = sqlite3.connect(path, check_same_thread=False)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     return connection

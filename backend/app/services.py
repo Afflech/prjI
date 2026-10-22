@@ -1,12 +1,15 @@
-import hashlib
 import json
-import math
-import re
 import sqlite3
 from typing import Any
 
 from fastapi import HTTPException, status
 
+from app.embeddings import (
+    embed_text as provider_embed_text,
+    searchable_tokens,
+    tokenize,
+)
+from app.limits import MAX_SOURCE_CONTENT_CHARS, MAX_UPLOAD_BYTES
 from app.repositories import (
     ChunkRepository,
     MessageRepository,
@@ -15,31 +18,18 @@ from app.repositories import (
 )
 
 
-EMBEDDING_DIMENSIONS = 64
 CHUNK_WORDS = 90
 CHUNK_OVERLAP = 20
 MAX_RETRIEVAL_RESULTS = 3
-MIN_SEARCH_TOKEN_LENGTH = 2
-
-
-def tokenize(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9]+", text.lower())
-
-
-def searchable_tokens(text: str) -> set[str]:
-    return {token for token in tokenize(text) if len(token) >= MIN_SEARCH_TOKEN_LENGTH}
+SUPPORTED_UPLOAD_SUFFIXES = {
+    ".txt": "text_file",
+    ".md": "markdown_file",
+    ".markdown": "markdown_file",
+}
 
 
 def embed_text(text: str) -> list[float]:
-    vector = [0.0] * EMBEDDING_DIMENSIONS
-    for token in tokenize(text):
-        digest = hashlib.blake2b(token.encode("utf-8"), digest_size=2).digest()
-        index = int.from_bytes(digest, "big") % EMBEDDING_DIMENSIONS
-        vector[index] += 1.0
-    norm = math.sqrt(sum(value * value for value in vector))
-    if norm == 0:
-        return vector
-    return [value / norm for value in vector]
+    return provider_embed_text(text)
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -60,6 +50,52 @@ def chunk_text(text: str) -> list[str]:
         if start + CHUNK_WORDS >= len(words):
             break
     return chunks
+
+
+def validate_source_content(content: str) -> str:
+    stripped = content.strip()
+    if not stripped:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Source content cannot be blank",
+        )
+    if len(stripped) > MAX_SOURCE_CONTENT_CHARS:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Source content must be at most {MAX_SOURCE_CONTENT_CHARS} characters",
+        )
+    return stripped
+
+
+def source_type_for_filename(filename: str) -> str:
+    lower_filename = filename.strip().lower()
+    for suffix, source_type in SUPPORTED_UPLOAD_SUFFIXES.items():
+        if lower_filename.endswith(suffix):
+            return source_type
+    raise HTTPException(
+        status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        detail="Only .txt, .md, and .markdown uploads are supported",
+    )
+
+
+def decode_text_upload(content: bytes) -> str:
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Uploaded file cannot be empty",
+        )
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Uploaded file must be at most {MAX_UPLOAD_BYTES} bytes",
+        )
+    try:
+        return content.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded TXT/MD file must be UTF-8 encoded",
+        ) from exc
 
 
 def chunk_records_for_source(source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -134,16 +170,47 @@ class SourceService:
         title: str,
         content: str,
     ) -> dict[str, Any]:
+        return self.create_text_source(
+            notebook_id=notebook_id,
+            title=title,
+            content=content,
+            source_type="pasted_text",
+        )
+
+    def create_uploaded_text(
+        self,
+        notebook_id: int,
+        filename: str,
+        content: bytes,
+    ) -> dict[str, Any]:
+        return self.create_text_source(
+            notebook_id=notebook_id,
+            title=filename.strip(),
+            content=decode_text_upload(content),
+            source_type=source_type_for_filename(filename),
+        )
+
+    def create_text_source(
+        self,
+        notebook_id: int,
+        title: str,
+        content: str,
+        source_type: str,
+    ) -> dict[str, Any]:
         if self.notebooks.get(notebook_id) is None:
             raise not_found("Notebook", notebook_id)
+        normalized_content = validate_source_content(content)
         try:
-            source = self.sources.create_pasted(
-                notebook_id,
-                title.strip(),
-                content,
+            source = self.sources.create_text_source(
+                notebook_id=notebook_id,
+                title=title.strip(),
+                content=normalized_content,
+                source_type=source_type,
                 commit=False,
             )
-            chunk_records = chunk_records_for_source({**source, "content": content})
+            chunk_records = chunk_records_for_source(
+                {**source, "content": normalized_content}
+            )
             self.chunks.create_many(chunk_records, commit=False)
             self.sources.db.commit()
             return self.sources.get(source["id"])

@@ -50,18 +50,20 @@ Acceptance:
 
 ## Phase 3 - Ingestion And Retrieval
 
-Trang thai: Done.
+Trang thai: In progress.
 
 Muc tieu:
 
-- Ingest pasted text; TXT/MD/PDF upload se lam sau khi pasted text on dinh.
-- Chunking, embeddings/retrieval local, citation/evidence API.
+- Ingest pasted text va TXT/MD upload; PDF de sau.
+- Chunking, Unicode retrieval, embedding provider abstraction, citation/evidence
+  API.
 
 Acceptance:
 
 - Cau hoi retrieve duoc chunk lien quan.
 - Citation tro ve chunk/source/page neu co.
 - Disabled source khong duoc retrieve.
+- TXT/MD upload retrieve duoc noi dung tieng Viet/Unicode.
 
 ## Phase 4 - Frontend MVP
 
@@ -75,7 +77,7 @@ Acceptance:
 
 - Browser flow notebook -> source -> chat -> citation -> evidence chay duoc.
 - Co loading/error state co ban.
-- Upload UI chi bat khi backend da co endpoint upload.
+- Upload UI noi vao TXT/MD endpoint backend; PDF UI de sau.
 
 ## Phase 5 - Docker And Gemini
 

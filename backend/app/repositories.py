@@ -69,6 +69,25 @@ class SourceRepository:
     def __init__(self, db: sqlite3.Connection):
         self.db = db
 
+    def create_text_source(
+        self,
+        notebook_id: int,
+        title: str,
+        content: str,
+        source_type: str,
+        commit: bool = True,
+    ) -> dict[str, Any]:
+        cursor = self.db.execute(
+            """
+            INSERT INTO sources (notebook_id, title, type, content, status, enabled)
+            VALUES (?, ?, ?, ?, 'ready', 1)
+            """,
+            (notebook_id, title, source_type, content),
+        )
+        if commit:
+            self.db.commit()
+        return self.get(cursor.lastrowid)
+
     def create_pasted(
         self,
         notebook_id: int,
@@ -76,16 +95,13 @@ class SourceRepository:
         content: str,
         commit: bool = True,
     ) -> dict[str, Any]:
-        cursor = self.db.execute(
-            """
-            INSERT INTO sources (notebook_id, title, type, content, status, enabled)
-            VALUES (?, ?, 'pasted_text', ?, 'ready', 1)
-            """,
-            (notebook_id, title, content),
+        return self.create_text_source(
+            notebook_id=notebook_id,
+            title=title,
+            content=content,
+            source_type="pasted_text",
+            commit=commit,
         )
-        if commit:
-            self.db.commit()
-        return self.get(cursor.lastrowid)
 
     def list_ready_without_chunks(self) -> list[dict[str, Any]]:
         rows = self.db.execute(
