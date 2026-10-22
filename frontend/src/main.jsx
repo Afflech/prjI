@@ -22,15 +22,15 @@ function App() {
           <div className="message assistant">
             <span className="message-label">Assistant</span>
             <p>
-              Skeleton is ready. Phase 2 will add notebooks, sources, and mock
-              chat history.
+              Backend core is ready. Frontend notebook, source, and chat
+              workflows arrive in Phase 4.
             </p>
           </div>
           <form className="composer">
             <input
               aria-label="Question"
               disabled
-              placeholder="Chat arrives in Phase 2"
+              placeholder="Chat UI arrives in Phase 4"
             />
             <button disabled type="button">
               Send
