@@ -1,6 +1,6 @@
 # Project Plan - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-22
+Ngay cap nhat: 2026-10-23
 
 Tai lieu nay la source of truth cho viec trien khai Mini NotebookLM tu dau.
 Truoc moi dot code, update tien do, hoac audit, can doc file nay truoc de nam
@@ -155,7 +155,7 @@ Acceptance:
 
 ### Phase 4 - Frontend MVP
 
-Trang thai: Next.
+Trang thai: In progress.
 
 Muc tieu:
 
@@ -173,6 +173,19 @@ Acceptance:
 
 - Manual browser flow: notebook -> source -> chat -> citation -> evidence.
 - UI co loading/error state co ban va responsive toi thieu.
+
+Tien do 2026-10-23:
+
+- Da thay placeholder frontend bang UI 3 cot sources/chat/evidence.
+- Da noi frontend vao API notebooks, sources, upload TXT/MD, chat, messages,
+  va chunk evidence.
+- Da them Vite dev proxy `/api` va `/health` sang backend local port 8000.
+- Da audit va sua UX/state cho no-citation message, evidence loading/error,
+  page metadata TXT/MD, composer layout, va reload khong can thiet.
+- `npm run build` va backend regression tests deu pass.
+- Manual browser smoke da pass cho citation/evidence TXT/MD; con can quyet dinh
+  co nang Phase 4 len Done sau khi chap nhan known limitations retrieval hash
+  con tho va PDF/page ngoai scope.
 
 ### Phase 5 - Docker va Gemini
 

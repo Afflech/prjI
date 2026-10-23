@@ -6,10 +6,11 @@ against enabled sources with citations back to original chunks.
 
 ## Current Status
 
-Phase 3 ingestion and retrieval is in progress. The backend exposes notebook,
-pasted source, TXT/MD raw upload, chunking, retrieval-preview chat, citations,
-and chunk evidence APIs backed by SQLite. Full frontend workflows, PDF, and
-Docker features are planned for later phases.
+Phase 4 frontend MVP is in progress. The backend exposes notebook, pasted
+source, TXT/MD raw upload, chunking, retrieval-preview chat, citations, and
+chunk evidence APIs backed by SQLite. The frontend now provides the main
+notebook/source/chat/evidence workspace. PDF and Docker features are planned for
+later phases.
 
 Start with:
 
@@ -109,6 +110,9 @@ cd frontend
 npm install
 npm run dev
 ```
+
+During local frontend development, Vite proxies `/api` and `/health` to the
+backend on `http://127.0.0.1:8000`.
 
 Build check:
 

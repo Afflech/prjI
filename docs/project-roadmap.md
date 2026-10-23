@@ -1,6 +1,6 @@
 # Project Roadmap - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-22
+Ngay cap nhat: 2026-10-23
 Trang thai: Roadmap cho du an moi.
 
 ## Phase 0 - Project Docs Baseline
@@ -67,7 +67,7 @@ Acceptance:
 
 ## Phase 4 - Frontend MVP
 
-Trang thai: Next.
+Trang thai: In progress.
 
 Muc tieu:
 
@@ -78,6 +78,16 @@ Acceptance:
 - Browser flow notebook -> source -> chat -> citation -> evidence chay duoc.
 - Co loading/error state co ban.
 - Upload UI noi vao TXT/MD endpoint backend; PDF UI de sau.
+
+Tien do:
+
+- UI 3 cot, notebook CRUD, source paste/upload/toggle/delete, chat citation
+  chips, evidence panel, va Vite API proxy da duoc implement.
+- Audit fixes cho UX no-citation, evidence state, composer layout, va reload
+  state da duoc implement.
+- Build frontend va backend regression tests pass.
+- Manual browser smoke citation/evidence TXT/MD da pass; PDF/page va retrieval
+  quality van la known limitations.
 
 ## Phase 5 - Docker And Gemini
 
