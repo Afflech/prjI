@@ -359,6 +359,9 @@ function App() {
           <div className="notebook-list" aria-label="Notebook list">
             {notebooks.map((notebook) => (
               <button
+                aria-current={
+                  notebook.id === selectedNotebookId ? "true" : undefined
+                }
                 className={
                   notebook.id === selectedNotebookId
                     ? "notebook-item active"
@@ -431,17 +434,23 @@ function App() {
                   </button>
                 </form>
 
-                <label className="file-button">
+                <button
+                  className="file-button"
+                  disabled={loading.sourceAction}
+                  onClick={() => fileInputRef.current?.click()}
+                  type="button"
+                >
                   Upload TXT/MD
-                  <input
-                    accept=".txt,.md,.markdown,text/plain,text/markdown"
-                    aria-label="Upload TXT or Markdown source"
-                    disabled={loading.sourceAction}
-                    onChange={uploadSource}
-                    ref={fileInputRef}
-                    type="file"
-                  />
-                </label>
+                </button>
+                <input
+                  accept=".txt,.md,.markdown,text/plain,text/markdown"
+                  aria-label="Upload TXT or Markdown source"
+                  className="file-input"
+                  disabled={loading.sourceAction}
+                  onChange={uploadSource}
+                  ref={fileInputRef}
+                  type="file"
+                />
 
                 <div className="source-list">
                   {sources.map((source) => (
@@ -456,6 +465,7 @@ function App() {
                       <div className="source-actions">
                         <label className="switch-label">
                           <input
+                            aria-label={`${source.enabled ? "Disable" : "Enable"} source ${source.title}`}
                             checked={source.enabled}
                             disabled={
                               loading.sourceAction && sourceActionId === source.id
@@ -466,6 +476,7 @@ function App() {
                           Enabled
                         </label>
                         <button
+                          aria-label={`Delete source ${source.title}`}
                           className="icon-text danger"
                           disabled={
                             loading.sourceAction && sourceActionId === source.id
@@ -501,7 +512,11 @@ function App() {
             )}
           </div>
 
-          {error && <div className="error-banner">{error}</div>}
+          {error && (
+            <div className="error-banner" role="alert">
+              {error}
+            </div>
+          )}
 
           <div className="messages" aria-live="polite">
             {loading.workspace && (
@@ -563,7 +578,9 @@ function App() {
           {loading.evidence ? (
             <p className="muted">Loading evidence...</p>
           ) : evidenceError ? (
-            <p className="error-text">{evidenceError}</p>
+            <p className="error-text" role="alert">
+              {evidenceError}
+            </p>
           ) : evidence ? (
             <article className="evidence-content">
               <h2>

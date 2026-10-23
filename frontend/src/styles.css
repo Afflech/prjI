@@ -1,6 +1,15 @@
 :root {
-  color: #1d252c;
-  background: #f6f7f9;
+  color: #1f2933;
+  background: #eef2f5;
+  --accent: #2364aa;
+  --accent-strong: #174f8a;
+  --border: #d7dde3;
+  --border-strong: #c4ced8;
+  --ink-muted: #607080;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --danger: #9b1c31;
+  --danger-soft: #fff0f3;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -24,9 +33,20 @@ button {
   border: 0;
   border-radius: 6px;
   color: #ffffff;
-  background: #2364aa;
+  background: var(--accent);
   cursor: pointer;
   font-weight: 700;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(35 100 170 / 28%);
+  outline-offset: 2px;
 }
 
 button:disabled,
@@ -40,11 +60,11 @@ input,
 textarea {
   min-width: 0;
   width: 100%;
-  border: 1px solid #c8d0d8;
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   padding: 10px 11px;
-  color: #1d252c;
-  background: #ffffff;
+  color: #1f2933;
+  background: var(--surface);
 }
 
 textarea {
@@ -54,6 +74,7 @@ textarea {
 .app-shell {
   min-height: 100vh;
   padding: 20px;
+  background: #eef2f5;
 }
 
 .workspace {
@@ -68,10 +89,12 @@ textarea {
 
 .panel {
   min-width: 0;
-  border: 1px solid #d7dde3;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgb(29 37 44 / 7%);
+  background: var(--surface);
+  box-shadow:
+    0 1px 2px rgb(29 37 44 / 6%),
+    0 12px 28px rgb(29 37 44 / 5%);
 }
 
 .sources-panel,
@@ -103,7 +126,8 @@ textarea {
 }
 
 .brand-block h1 {
-  font-size: 1.85rem;
+  font-size: 1.7rem;
+  text-wrap: balance;
 }
 
 .chat-header h2,
@@ -115,7 +139,7 @@ textarea {
 .eyebrow,
 .message-label {
   margin: 0;
-  color: #66717c;
+  color: var(--ink-muted);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -140,21 +164,31 @@ textarea {
 }
 
 .stack-form label {
-  color: #46525d;
+  color: #43515f;
   font-size: 0.86rem;
   font-weight: 800;
 }
 
 .secondary {
-  border: 1px solid #c8d0d8;
+  border: 1px solid var(--border-strong);
   padding: 10px 12px;
   color: #25313b;
-  background: #f3f5f7;
+  background: var(--surface-soft);
+}
+
+.secondary:hover:not(:disabled) {
+  color: #1f2933;
+  background: #e9eef3;
 }
 
 .danger {
-  color: #9b1c31;
-  background: #fff0f3;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.danger:hover:not(:disabled) {
+  color: #7c1024;
+  background: #ffe1e8;
 }
 
 .notebook-list,
@@ -165,19 +199,25 @@ textarea {
 
 .notebook-item {
   overflow: hidden;
-  border: 1px solid #d7dde3;
+  border: 1px solid var(--border);
   padding: 10px 11px;
   color: #25313b;
-  background: #f8fafb;
+  background: var(--surface-soft);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.notebook-item:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: #1f2933;
+  background: #eef4f9;
+}
+
 .notebook-item.active {
-  border-color: #2364aa;
+  border-color: var(--accent);
   color: #ffffff;
-  background: #2364aa;
+  background: var(--accent);
 }
 
 .source-tools {
@@ -192,16 +232,19 @@ textarea {
   border: 1px dashed #97a6b5;
   border-radius: 6px;
   color: #25313b;
-  background: #f7fafc;
+  background: var(--surface-soft);
   cursor: pointer;
   font-weight: 800;
 }
 
-.file-button input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
+.file-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: #eef6ff;
+}
+
+.file-input {
+  display: none;
 }
 
 .source-row {
@@ -210,6 +253,8 @@ textarea {
   border: 1px solid #dfe5eb;
   border-radius: 8px;
   padding: 11px;
+  background: #ffffff;
+  box-shadow: 0 1px 1px rgb(29 37 44 / 3%);
 }
 
 .source-row strong {
@@ -220,7 +265,7 @@ textarea {
 .source-row span {
   display: block;
   margin-top: 4px;
-  color: #66717c;
+  color: var(--ink-muted);
   font-size: 0.82rem;
 }
 
@@ -292,12 +337,13 @@ textarea {
   border-radius: 8px;
   padding: 13px 14px;
   background: #fbfcfd;
+  box-shadow: 0 1px 1px rgb(29 37 44 / 3%);
 }
 
 .message.user {
   align-self: flex-end;
   border-color: #cfe2ff;
-  background: #f1f7ff;
+  background: #f0f7ff;
 }
 
 .message.assistant {
@@ -330,6 +376,13 @@ textarea {
   color: #174a7c;
   background: #eef6ff;
   font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.citation-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: #ffffff;
+  background: var(--accent);
 }
 
 .empty-chat {
@@ -370,7 +423,7 @@ textarea {
   border: 1px solid #dfe5eb;
   border-radius: 6px;
   padding: 9px;
-  background: #fbfcfd;
+  background: var(--surface-soft);
 }
 
 .evidence-content dt {
@@ -386,7 +439,7 @@ textarea {
 }
 
 .muted {
-  color: #66717c;
+  color: var(--ink-muted);
 }
 
 .error-text {
