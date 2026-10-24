@@ -3,6 +3,17 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 const EMPTY_PASTE_FORM = { title: "", content: "" };
+const ACCEPTED_SOURCE_TYPES = [
+  ".txt",
+  ".md",
+  ".markdown",
+  ".pdf",
+  ".pptx",
+  "text/plain",
+  "text/markdown",
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+].join(",");
 const EMPTY_LOADING = {
   notebooks: false,
   workspace: false,
@@ -57,6 +68,8 @@ function sourceTypeLabel(type) {
     pasted_text: "Pasted",
     text_file: "TXT",
     markdown_file: "MD",
+    pdf_file: "PDF",
+    pptx_file: "PPTX",
   };
   return labels[type] || type;
 }
@@ -440,11 +453,11 @@ function App() {
                   onClick={() => fileInputRef.current?.click()}
                   type="button"
                 >
-                  Upload TXT/MD
+                  Upload File
                 </button>
                 <input
-                  accept=".txt,.md,.markdown,text/plain,text/markdown"
-                  aria-label="Upload TXT or Markdown source"
+                  accept={ACCEPTED_SOURCE_TYPES}
+                  aria-label="Upload source file"
                   className="file-input"
                   disabled={loading.sourceAction}
                   onChange={uploadSource}

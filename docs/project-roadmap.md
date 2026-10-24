@@ -1,6 +1,6 @@
 # Project Roadmap - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-23
+Ngay cap nhat: 2026-10-25
 Trang thai: Roadmap cho du an moi.
 
 ## Phase 0 - Project Docs Baseline
@@ -50,11 +50,13 @@ Acceptance:
 
 ## Phase 3 - Ingestion And Retrieval
 
-Trang thai: In progress.
+Trang thai: Done.
 
 Muc tieu:
 
-- Ingest pasted text va TXT/MD upload; PDF de sau.
+- Ingest pasted text va TXT/MD/PDF/PPTX upload.
+- PDF citation giu page metadata neu extract duoc.
+- OCR la optional fallback cho PDF scan, khong bat buoc cho base MVP.
 - Chunking, Unicode retrieval, embedding provider abstraction, citation/evidence
   API.
 
@@ -63,11 +65,11 @@ Acceptance:
 - Cau hoi retrieve duoc chunk lien quan.
 - Citation tro ve chunk/source/page neu co.
 - Disabled source khong duoc retrieve.
-- TXT/MD upload retrieve duoc noi dung tieng Viet/Unicode.
+- TXT/MD/PDF/PPTX upload retrieve duoc noi dung tieng Viet/Unicode.
 
 ## Phase 4 - Frontend MVP
 
-Trang thai: In progress.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -77,7 +79,7 @@ Acceptance:
 
 - Browser flow notebook -> source -> chat -> citation -> evidence chay duoc.
 - Co loading/error state co ban.
-- Upload UI noi vao TXT/MD endpoint backend; PDF UI de sau.
+- Upload UI noi vao TXT/MD/PDF/PPTX endpoint backend.
 
 Tien do:
 
@@ -85,9 +87,9 @@ Tien do:
   chips, evidence panel, va Vite API proxy da duoc implement.
 - Audit fixes cho UX no-citation, evidence state, composer layout, va reload
   state da duoc implement.
-- Build frontend va backend regression tests pass.
-- Manual browser smoke citation/evidence TXT/MD da pass; PDF/page va retrieval
-  quality van la known limitations.
+- Build frontend, backend regression tests, va smoke API pass.
+- TXT/MD/PDF/PPTX citation/evidence flow da duoc verify. Retrieval quality va
+  browser automation van la known limitations.
 
 ## Phase 5 - Docker And Gemini
 

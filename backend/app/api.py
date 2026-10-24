@@ -3,7 +3,6 @@ import sqlite3
 from fastapi import APIRouter, Body, Depends, Query, Response, status
 
 from app.database import get_db
-from app.limits import MAX_UPLOAD_BYTES
 from app.schemas import (
     ChatRequest,
     ChatResponse,
@@ -89,8 +88,7 @@ async def upload_source(
     filename: str = Query(min_length=1, max_length=160),
     content: bytes = Body(
         min_length=1,
-        max_length=MAX_UPLOAD_BYTES,
-        media_type="text/plain",
+        media_type="application/octet-stream",
     ),
     db: sqlite3.Connection = Depends(get_db),
 ) -> dict:

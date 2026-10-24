@@ -1,16 +1,16 @@
 # Mini NotebookLM
 
 Mini NotebookLM is a Project I web app for source-grounded study Q&A.
-Users will create notebooks, add PDF/TXT/MD or pasted text sources, then chat
-against enabled sources with citations back to original chunks.
+Users will create notebooks, add TXT/MD/PDF/PPTX or pasted text sources, then
+chat against enabled sources with citations back to original chunks.
 
 ## Current Status
 
-Phase 4 frontend MVP is in progress. The backend exposes notebook, pasted
-source, TXT/MD raw upload, chunking, retrieval-preview chat, citations, and
-chunk evidence APIs backed by SQLite. The frontend now provides the main
-notebook/source/chat/evidence workspace. PDF and Docker features are planned for
-later phases.
+Phase 4 frontend MVP is complete for local demo. The backend exposes notebook,
+pasted source, TXT/MD/PDF/PPTX raw upload, chunking, retrieval-preview chat,
+citations, and chunk evidence APIs backed by SQLite. The frontend now provides
+the main notebook/source/chat/evidence workspace. Docker and Gemini features are
+planned for later phases.
 
 Start with:
 
@@ -31,7 +31,7 @@ Start with:
 ## Target MVP Features
 
 - Create, rename, and delete notebooks.
-- Add PDF/TXT/MD files and pasted text sources.
+- Add TXT/MD/PDF/PPTX files and pasted text sources.
 - Ingest sources with text extraction, chunking, embeddings, and vector storage.
 - Enable or disable individual sources before chat.
 - Keep chat history per notebook.
@@ -82,13 +82,19 @@ curl -X POST http://127.0.0.1:8000/api/notebooks/1/chat \
   -d '{"question":"How do AVL trees stay balanced?"}'
 ```
 
-Upload a TXT/MD source with a raw UTF-8 body:
+Upload a source file with a raw body:
 
 ```bash
 curl -X POST 'http://127.0.0.1:8000/api/notebooks/1/sources/upload?filename=notes.md' \
   -H 'content-type: text/markdown; charset=utf-8' \
   --data-binary @notes.md
 ```
+
+Supported upload types are `.txt`, `.md`, `.markdown`, `.pdf`, and `.pptx`.
+Legacy `.ppt` files are not supported. PDF OCR is optional: set
+`OCR_ENABLED=1` and install local OCR dependencies such as Poppler and
+Tesseract plus Python packages `pdf2image` and `pytesseract` to attempt OCR when
+a PDF has no extractable text.
 
 Embedding configuration:
 

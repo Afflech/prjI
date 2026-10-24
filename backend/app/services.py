@@ -7,7 +7,11 @@ from fastapi import HTTPException, status
 from app.embeddings import (
     embed_text as provider_embed_text,
     searchable_tokens,
-    tokenize,
+)
+from app.extractors import (
+    ExtractedTextBlock,
+    extract_upload_text,
+    source_type_for_filename,
 )
 from app.limits import MAX_SOURCE_CONTENT_CHARS, MAX_UPLOAD_BYTES
 from app.repositories import (
@@ -21,11 +25,6 @@ from app.repositories import (
 CHUNK_WORDS = 90
 CHUNK_OVERLAP = 20
 MAX_RETRIEVAL_RESULTS = 3
-SUPPORTED_UPLOAD_SUFFIXES = {
-    ".txt": "text_file",
-    ".md": "markdown_file",
-    ".markdown": "markdown_file",
-}
 
 
 def embed_text(text: str) -> list[float]:
@@ -56,58 +55,51 @@ def validate_source_content(content: str) -> str:
     stripped = content.strip()
     if not stripped:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Source content cannot be blank",
         )
     if len(stripped) > MAX_SOURCE_CONTENT_CHARS:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"Source content must be at most {MAX_SOURCE_CONTENT_CHARS} characters",
         )
     return stripped
 
 
-def source_type_for_filename(filename: str) -> str:
-    lower_filename = filename.strip().lower()
-    for suffix, source_type in SUPPORTED_UPLOAD_SUFFIXES.items():
-        if lower_filename.endswith(suffix):
-            return source_type
-    raise HTTPException(
-        status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        detail="Only .txt, .md, and .markdown uploads are supported",
-    )
-
-
-def decode_text_upload(content: bytes) -> str:
+def validate_upload_content(content: bytes) -> None:
     if not content:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Uploaded file cannot be empty",
         )
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"Uploaded file must be at most {MAX_UPLOAD_BYTES} bytes",
         )
-    try:
-        return content.decode("utf-8")
-    except UnicodeDecodeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded TXT/MD file must be UTF-8 encoded",
-        ) from exc
 
 
 def chunk_records_for_source(source: dict[str, Any]) -> list[dict[str, Any]]:
+    return chunk_records_for_blocks(
+        source,
+        [ExtractedTextBlock(text=source.get("content", ""))],
+    )
+
+
+def chunk_records_for_blocks(
+    source: dict[str, Any],
+    blocks: list[ExtractedTextBlock],
+) -> list[dict[str, Any]]:
     return [
         {
             "source_id": source["id"],
             "notebook_id": source["notebook_id"],
-            "page": None,
+            "page": block.page,
             "text": chunk,
             "embedding": json.dumps(embed_text(chunk)),
         }
-        for chunk in chunk_text(source.get("content", ""))
+        for block in blocks
+        for chunk in chunk_text(block.text)
     ]
 
 
@@ -183,11 +175,19 @@ class SourceService:
         filename: str,
         content: bytes,
     ) -> dict[str, Any]:
+        validate_upload_content(content)
+        source_type = source_type_for_filename(filename)
+        blocks = extract_upload_text(filename, content)
+        normalized_blocks = [
+            ExtractedTextBlock(text=validate_source_content(block.text), page=block.page)
+            for block in blocks
+        ]
         return self.create_text_source(
             notebook_id=notebook_id,
             title=filename.strip(),
-            content=decode_text_upload(content),
-            source_type=source_type_for_filename(filename),
+            content="\n\n".join(block.text for block in normalized_blocks),
+            source_type=source_type,
+            blocks=normalized_blocks,
         )
 
     def create_text_source(
@@ -196,10 +196,12 @@ class SourceService:
         title: str,
         content: str,
         source_type: str,
+        blocks: list[ExtractedTextBlock] | None = None,
     ) -> dict[str, Any]:
         if self.notebooks.get(notebook_id) is None:
             raise not_found("Notebook", notebook_id)
         normalized_content = validate_source_content(content)
+        normalized_blocks = blocks or [ExtractedTextBlock(text=normalized_content)]
         try:
             source = self.sources.create_text_source(
                 notebook_id=notebook_id,
@@ -208,9 +210,12 @@ class SourceService:
                 source_type=source_type,
                 commit=False,
             )
-            chunk_records = chunk_records_for_source(
-                {**source, "content": normalized_content}
-            )
+            if blocks is None:
+                chunk_records = chunk_records_for_source(
+                    {**source, "content": normalized_content}
+                )
+            else:
+                chunk_records = chunk_records_for_blocks(source, normalized_blocks)
             self.chunks.create_many(chunk_records, commit=False)
             self.sources.db.commit()
             return self.sources.get(source["id"])

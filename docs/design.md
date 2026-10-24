@@ -1,9 +1,9 @@
 # Design - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-22
-Trang thai: Phase 3 dang hardening backend ingestion/retrieval voi SQLite,
-pasted/TXT/MD source ingestion, retrieval-preview chat, citations, va chunk
-evidence API. Frontend MVP van la target design cho phase sau.
+Ngay cap nhat: 2026-10-25
+Trang thai: Phase 3/4 local MVP da Done voi SQLite, pasted/TXT/MD/PDF/PPTX
+source ingestion, retrieval-preview chat, citations, chunk evidence API, va
+frontend workspace 3 cot.
 
 ## 1. Product Goal
 
@@ -15,17 +15,18 @@ tra loi can dua tren source da them vao notebook va co citation de kiem chung.
 Target app gom cac phan:
 
 - Frontend React/Vite cho thao tac notebook, source, chat, va evidence panel.
-  Phase 1 hien co app shell toi thieu.
+  Phase 4 hien co workspace 3 cot cho local MVP.
 - Backend FastAPI cung cap REST API. Phase 3 hien co `/health`, notebook,
-  pasted source, TXT/MD raw upload, chat, va evidence endpoints.
+  pasted source, TXT/MD/PDF/PPTX raw upload, chat, va evidence endpoints.
 - SQLite luu notebooks, sources, chunks, messages.
-- Ingestion pipeline hien chunk pasted/TXT/MD text voi overlap, embed qua
+- Ingestion pipeline hien chunk pasted/TXT/MD/PDF/PPTX text voi overlap, embed qua
   provider boundary, va luu metadata.
 - Retrieval layer tim chunks lien quan trong enabled ready sources.
 - LLM provider abstraction: mock truoc, Gemini sau.
 
 Luon phan biet target design voi trang thai thuc te: Phase 3 co backend
-retrieval/citation cho pasted text va TXT/MD; PDF va frontend day du chua lam.
+retrieval/citation cho pasted text, TXT/MD, PDF, va PPTX; OCR chi la optional
+fallback cho PDF scan khi local tool co san.
 
 ## 3. Backend Target
 
@@ -51,9 +52,10 @@ Order trien khai:
 1. Pasted text.
 2. TXT/MD files.
 3. PDF text extraction.
+4. PPTX text extraction.
 
 Chunking se co overlap de giam mat ngu canh. PDF citation can giu page number
-neu extract duoc.
+neu extract duoc. PPTX MVP khong yeu cau slide number trong citation.
 
 ## 5. Retrieval Target
 
@@ -92,11 +94,11 @@ UI target gom 3 cot:
 - Chat: message history, composer, loading/error state.
 - Evidence: citation detail va chunk text.
 
-Phase 4 moi implement UI day du. Phase 1 chi co app shell toi thieu.
+Phase 4 da implement UI day du cho local MVP. Browser automation chua co.
 
 ## 8. Non-goals For Early MVP
 
-- OCR cho PDF scan.
+- OCR mac dinh/bat buoc cho PDF scan; OCR chi optional fallback khi duoc cau hinh.
 - DOCX ingestion.
 - URL ingestion.
 - Auth/user accounts.

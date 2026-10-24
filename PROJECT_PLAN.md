@@ -1,6 +1,6 @@
 # Project Plan - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-23
+Ngay cap nhat: 2026-10-25
 
 Tai lieu nay la source of truth cho viec trien khai Mini NotebookLM tu dau.
 Truoc moi dot code, update tien do, hoac audit, can doc file nay truoc de nam
@@ -28,8 +28,9 @@ Mini NotebookLM la web app phuc vu hoc tap theo mo hinh source-grounded Q&A:
   da on dinh.
 - Scope MVP gom notebook, source, ingestion co ban, retrieval, chat, citation,
   va evidence panel.
-- De ngoai MVP dau: OCR, DOCX, URL ingestion, saved notes, study guide tu dong,
-  auth, deployment production.
+- De ngoai MVP dau: DOCX, URL ingestion, saved notes, study guide tu dong,
+  auth, deployment production. OCR chi la optional fallback cho PDF scan khi
+  local tool duoc cau hinh.
 
 ## 3. README target
 
@@ -52,7 +53,7 @@ Noi dung README target:
     ton tai.
 - MVP features target:
   - Create, rename, delete notebooks.
-  - Upload TXT/MD va paste text sources truoc; PDF sau khi text flow on dinh.
+  - Upload TXT/MD/PDF/PPTX va paste text sources.
   - Background ingestion voi text extraction, chunking, embeddings, vector
     storage.
   - Enable/disable individual sources truoc khi chat.
@@ -130,16 +131,19 @@ Acceptance:
 
 ### Phase 3 - Ingestion va retrieval
 
-Trang thai: In progress.
+Trang thai: Done.
 
 Muc tieu:
 
-- Co retrieval co citation dua tren pasted text va TXT/MD da ingest.
+- Co retrieval co citation dua tren pasted text va file da ingest.
 
 Viec can lam:
 
-- Ho tro pasted text va TXT/MD upload.
-- PDF text extraction de sau khi TXT/MD on dinh.
+- Ho tro pasted text va TXT/MD/PDF/PPTX upload.
+- PDF text extraction voi page metadata neu co.
+- PPTX text extraction khong yeu cau slide citation metadata.
+- OCR optional fallback cho PDF scan khi `OCR_ENABLED=1` va dependency local co
+  san.
 - Chunking co overlap va metadata source/page neu co.
 - Unicode tokenizer cho tieng Viet va text khong phai ASCII.
 - Embedding provider interface: local hash fallback offline va HTTP provider
@@ -151,11 +155,11 @@ Acceptance:
 - Hoi cau lien quan den source thi retrieve duoc chunk phu hop.
 - Citation co chunk id, source id, source title, page neu co.
 - Disabled source khong duoc retrieve/cite.
-- Upload TXT/MD tao source ready va retrieve duoc noi dung Unicode.
+- Upload TXT/MD/PDF/PPTX tao source ready va retrieve duoc noi dung Unicode.
 
 ### Phase 4 - Frontend MVP
 
-Trang thai: In progress.
+Trang thai: Done.
 
 Muc tieu:
 
@@ -174,18 +178,19 @@ Acceptance:
 - Manual browser flow: notebook -> source -> chat -> citation -> evidence.
 - UI co loading/error state co ban va responsive toi thieu.
 
-Tien do 2026-10-23:
+Tien do 2026-10-25:
 
 - Da thay placeholder frontend bang UI 3 cot sources/chat/evidence.
-- Da noi frontend vao API notebooks, sources, upload TXT/MD, chat, messages,
-  va chunk evidence.
+- Da noi frontend vao API notebooks, sources, upload TXT/MD/PDF/PPTX, chat,
+  messages, va chunk evidence.
 - Da them Vite dev proxy `/api` va `/health` sang backend local port 8000.
 - Da audit va sua UX/state cho no-citation message, evidence loading/error,
   page metadata TXT/MD, composer layout, va reload khong can thiet.
-- `npm run build` va backend regression tests deu pass.
-- Manual browser smoke da pass cho citation/evidence TXT/MD; con can quyet dinh
-  co nang Phase 4 len Done sau khi chap nhan known limitations retrieval hash
-  con tho va PDF/page ngoai scope.
+- `.venv/bin/python -m pytest backend/tests`, `npm run build`, va
+  `git diff --check` deu pass.
+- Smoke API da pass cho TXT/MD/PDF/PPTX -> chat -> citation -> evidence.
+- Chap nhan known limitations: retrieval hash con tho, OCR optional fallback
+  ngoai base MVP, chua co browser automation.
 
 ### Phase 5 - Docker va Gemini
 
@@ -257,8 +262,8 @@ Quy uoc trang thai:
 - Phase 0: doc review, dam bao tai lieu khong gia dinh code da ton tai.
 - Phase 1: backend `/health` OK, frontend build/dev OK.
 - Phase 2: backend smoke test notebook/source/chat mock.
-- Phase 3: retrieval/citation smoke test, TXT/MD upload, Unicode retrieval, va
-  regression tests cho failure paths.
+- Phase 3: retrieval/citation smoke test, TXT/MD/PDF/PPTX upload, Unicode
+  retrieval, va regression tests cho failure paths.
 - Phase 4: manual browser checklist.
 - Phase 5: Docker healthcheck va Gemini config check.
 - Phase 6: evaluation top-k hit rate va demo checklist.

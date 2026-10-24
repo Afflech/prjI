@@ -124,8 +124,13 @@ async def run_upload_unicode_test(tmp_path, monkeypatch):
 
         invalid_upload = await client.post(
             f"/api/notebooks/{notebook['id']}/sources/upload",
-            params={"filename": "scan.pdf"},
-            content=b"PDF comes later",
-            headers={"content-type": "application/pdf"},
+            params={"filename": "notes.docx"},
+            content=b"DOCX comes later",
+            headers={
+                "content-type": (
+                    "application/vnd.openxmlformats-officedocument."
+                    "wordprocessingml.document"
+                )
+            },
         )
         assert invalid_upload.status_code == 415
