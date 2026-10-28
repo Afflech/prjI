@@ -14,6 +14,7 @@ const ACCEPTED_SOURCE_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 ].join(",");
+const COLLAPSIBLE_MESSAGE_LENGTH = 360;
 const EMPTY_LOADING = {
   notebooks: false,
   workspace: false,
@@ -60,12 +61,12 @@ function errorMessage(payload, status) {
     return payload.detail[0].msg;
   }
   if (typeof payload === "string") return payload;
-  return `Request failed (${status})`;
+  return `Yêu cầu thất bại (${status})`;
 }
 
 function sourceTypeLabel(type) {
   const labels = {
-    pasted_text: "Pasted",
+    pasted_text: "Dán",
     text_file: "TXT",
     markdown_file: "MD",
     pdf_file: "PDF",
@@ -74,9 +75,22 @@ function sourceTypeLabel(type) {
   return labels[type] || type;
 }
 
+function sourceStatusLabel(status) {
+  const labels = {
+    ready: "sẵn sàng",
+    failed: "lỗi",
+    processing: "đang xử lý",
+  };
+  return labels[status] || status;
+}
+
+function roleLabel(role) {
+  return role === "user" ? "Bạn" : "Trợ lý";
+}
+
 function citationLabel(citation) {
   const page = citation.page ? ` · p.${citation.page}` : "";
-  return `${citation.source_title} · chunk ${citation.chunk_id}${page}`;
+  return `${citation.source_title} · đoạn ${citation.chunk_id}${page}`;
 }
 
 function App() {
@@ -92,9 +106,11 @@ function App() {
   const [question, setQuestion] = useState("");
   const [error, setError] = useState("");
   const [evidenceError, setEvidenceError] = useState("");
+  const [expandedMessageIds, setExpandedMessageIds] = useState(new Set());
   const [loading, setLoading] = useState(EMPTY_LOADING);
   const [sourceActionId, setSourceActionId] = useState(null);
   const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const selectedNotebook = useMemo(
     () => notebooks.find((notebook) => notebook.id === selectedNotebookId),
@@ -120,6 +136,10 @@ function App() {
   useEffect(() => {
     setRenameTitle(selectedNotebook?.title || "");
   }, [selectedNotebook?.id, selectedNotebook?.title]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading.chat]);
 
   async function run(task, action, onError = setError) {
     setLoading((current) => ({ ...current, [task]: true }));
@@ -223,7 +243,7 @@ function App() {
 
   async function deleteNotebook() {
     if (!selectedNotebook) return;
-    const confirmed = window.confirm(`Delete "${selectedNotebook.title}"?`);
+    const confirmed = window.confirm(`Xóa "${selectedNotebook.title}"?`);
     if (!confirmed) return;
     const deleted = await run("deleteNotebook", async () => {
       await apiRequest(`/api/notebooks/${selectedNotebook.id}`, {
@@ -296,7 +316,7 @@ function App() {
   }
 
   async function deleteSource(source) {
-    const confirmed = window.confirm(`Delete "${source.title}"?`);
+    const confirmed = window.confirm(`Xóa "${source.title}"?`);
     if (!confirmed || !selectedNotebook) return;
     setSourceActionId(source.id);
     const deleted = await run("sourceAction", async () => {
@@ -314,9 +334,20 @@ function App() {
     if (!selectedNotebook) return;
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
+    const tempUserMessage = {
+      id: `tmp-${Date.now()}`,
+      notebook_id: selectedNotebook.id,
+      role: "user",
+      content: trimmedQuestion,
+      citations: [],
+      created_at: new Date().toISOString(),
+    };
+
+    setQuestion("");
     setEvidence(null);
     setSelectedCitation(null);
     setEvidenceError("");
+    setMessages((current) => [...current, tempUserMessage]);
     const chat = await run("chat", () =>
       apiRequest(`/api/notebooks/${selectedNotebook.id}/chat`, {
         method: "POST",
@@ -324,12 +355,16 @@ function App() {
       }),
     );
     if (chat) {
-      setQuestion("");
       setMessages((current) => [
-        ...current,
-        chat.user_message,
+        ...current.map((message) =>
+          message.id === tempUserMessage.id ? chat.user_message : message,
+        ),
         chat.assistant_message,
       ]);
+    } else {
+      setMessages((current) =>
+        current.filter((message) => message.id !== tempUserMessage.id),
+      );
     }
   }
 
@@ -346,30 +381,46 @@ function App() {
     }
   }
 
+  function toggleMessageExpanded(messageId) {
+    setExpandedMessageIds((current) => {
+      const next = new Set(current);
+      if (next.has(messageId)) {
+        next.delete(messageId);
+      } else {
+        next.add(messageId);
+      }
+      return next;
+    });
+  }
+
   const hasNotebook = Boolean(selectedNotebook);
 
   return (
     <main className="app-shell">
       <section className="workspace">
-        <aside className="panel sources-panel" aria-label="Sources">
+        <aside className="panel sources-panel" aria-label="Nguồn">
           <header className="brand-block">
             <p className="eyebrow">Mini NotebookLM</p>
-            <h1>Study Q&A</h1>
+            <h1>Hỏi đáp tài liệu</h1>
           </header>
 
           <form className="inline-form" onSubmit={createNotebook}>
             <input
-              aria-label="New notebook title"
+              aria-label="Tên notebook mới"
               onChange={(event) => setNewNotebookTitle(event.target.value)}
-              placeholder="New notebook"
+              placeholder="Notebook mới"
               value={newNotebookTitle}
             />
-            <button disabled={loading.createNotebook} type="submit">
-              Create
+            <button
+              className="primary"
+              disabled={loading.createNotebook}
+              type="submit"
+            >
+              Tạo
             </button>
           </form>
 
-          <div className="notebook-list" aria-label="Notebook list">
+          <div className="notebook-list" aria-label="Danh sách notebook">
             {notebooks.map((notebook) => (
               <button
                 aria-current={
@@ -388,82 +439,93 @@ function App() {
               </button>
             ))}
             {!notebooks.length && (
-              <p className="muted compact">Create a notebook to begin.</p>
+              <p className="muted compact">Tạo notebook để bắt đầu.</p>
             )}
           </div>
 
           {hasNotebook && (
             <>
-              <form className="stack-form" onSubmit={renameNotebook}>
-                <label htmlFor="rename-title">Notebook title</label>
-                <div className="inline-form">
-                  <input
-                    id="rename-title"
-                    onChange={(event) => setRenameTitle(event.target.value)}
-                    value={renameTitle}
-                  />
-                  <button disabled={loading.renameNotebook} type="submit">
-                    Save
-                  </button>
-                </div>
-                <button
-                  className="secondary danger"
-                  disabled={loading.deleteNotebook}
-                  onClick={deleteNotebook}
-                  type="button"
-                >
-                  Delete Notebook
-                </button>
-              </form>
-
-              <section className="source-tools" aria-label="Source tools">
-                <h2>Sources</h2>
-                <form className="stack-form" onSubmit={addPastedSource}>
-                  <input
-                    aria-label="Source title"
-                    onChange={(event) =>
-                      setPasteForm((current) => ({
-                        ...current,
-                        title: event.target.value,
-                      }))
-                    }
-                    placeholder="Source title"
-                    value={pasteForm.title}
-                  />
-                  <textarea
-                    aria-label="Source content"
-                    onChange={(event) =>
-                      setPasteForm((current) => ({
-                        ...current,
-                        content: event.target.value,
-                      }))
-                    }
-                    placeholder="Paste study material"
-                    rows="5"
-                    value={pasteForm.content}
-                  />
-                  <button disabled={loading.sourceAction} type="submit">
-                    Add Source
+              <details className="notebook-settings">
+                <summary>Thiết lập notebook</summary>
+                <form className="stack-form" onSubmit={renameNotebook}>
+                  <label htmlFor="rename-title">Tên notebook</label>
+                  <div className="inline-form">
+                    <input
+                      id="rename-title"
+                      onChange={(event) => setRenameTitle(event.target.value)}
+                      value={renameTitle}
+                    />
+                    <button disabled={loading.renameNotebook} type="submit">
+                      Lưu
+                    </button>
+                  </div>
+                  <button
+                    className="secondary danger"
+                    disabled={loading.deleteNotebook}
+                    onClick={deleteNotebook}
+                    type="button"
+                  >
+                    Xóa notebook
                   </button>
                 </form>
+              </details>
+
+              <section className="source-tools" aria-label="Công cụ nguồn">
+                <h2>Nguồn</h2>
 
                 <button
-                  className="file-button"
+                  className="file-button primary"
                   disabled={loading.sourceAction}
                   onClick={() => fileInputRef.current?.click()}
                   type="button"
                 >
-                  Upload File
+                  Tải tệp lên
                 </button>
                 <input
                   accept={ACCEPTED_SOURCE_TYPES}
-                  aria-label="Upload source file"
+                  aria-label="Tải tệp nguồn lên"
                   className="file-input"
                   disabled={loading.sourceAction}
                   onChange={uploadSource}
                   ref={fileInputRef}
                   type="file"
                 />
+
+                <details className="paste-source-details">
+                  <summary>Dán văn bản thay thế</summary>
+                  <form className="stack-form" onSubmit={addPastedSource}>
+                    <input
+                      aria-label="Tên nguồn"
+                      onChange={(event) =>
+                        setPasteForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                      placeholder="Tên nguồn"
+                      value={pasteForm.title}
+                    />
+                    <textarea
+                      aria-label="Nội dung nguồn"
+                      onChange={(event) =>
+                        setPasteForm((current) => ({
+                          ...current,
+                          content: event.target.value,
+                        }))
+                      }
+                      placeholder="Dán tài liệu học tập"
+                      rows="5"
+                      value={pasteForm.content}
+                    />
+                    <button
+                      className="primary"
+                      disabled={loading.sourceAction}
+                      type="submit"
+                    >
+                      Thêm nguồn
+                    </button>
+                  </form>
+                </details>
 
                 <div className="source-list">
                   {sources.map((source) => (
@@ -472,13 +534,13 @@ function App() {
                         <strong>{source.title}</strong>
                         <span>
                           #{source.id} · {sourceTypeLabel(source.type)} ·{" "}
-                          {source.status}
+                          {sourceStatusLabel(source.status)}
                         </span>
                       </div>
                       <div className="source-actions">
                         <label className="switch-label">
                           <input
-                            aria-label={`${source.enabled ? "Disable" : "Enable"} source ${source.title}`}
+                            aria-label={`${source.enabled ? "Tắt" : "Bật"} nguồn ${source.title}`}
                             checked={source.enabled}
                             disabled={
                               loading.sourceAction && sourceActionId === source.id
@@ -486,10 +548,10 @@ function App() {
                             onChange={() => toggleSource(source)}
                             type="checkbox"
                           />
-                          Enabled
+                          Bật
                         </label>
                         <button
-                          aria-label={`Delete source ${source.title}`}
+                          aria-label={`Xóa nguồn ${source.title}`}
                           className="icon-text danger"
                           disabled={
                             loading.sourceAction && sourceActionId === source.id
@@ -497,13 +559,13 @@ function App() {
                           onClick={() => deleteSource(source)}
                           type="button"
                         >
-                          Delete
+                          Xóa
                         </button>
                       </div>
                     </article>
                   ))}
                   {!sources.length && (
-                    <p className="muted compact">No sources yet.</p>
+                    <p className="muted compact">Chưa có nguồn nào.</p>
                   )}
                 </div>
               </section>
@@ -511,85 +573,126 @@ function App() {
           )}
         </aside>
 
-        <section className="panel chat-panel" aria-label="Chat">
+        <section className="panel chat-panel" aria-label="Trò chuyện">
           <div className="chat-header">
             <div>
-              <p className="eyebrow">Chat</p>
-              <h2>{selectedNotebook?.title || "No notebook selected"}</h2>
+              <p className="eyebrow">Trò chuyện</p>
+              <h2>{selectedNotebook?.title || "Chưa chọn notebook"}</h2>
             </div>
             {sources.length > 0 && (
               <span className="source-count">
                 {sources.filter((source) => source.enabled).length}/
-                {sources.length} enabled
+                {sources.length} bật
               </span>
             )}
           </div>
 
-          {error && (
-            <div className="error-banner" role="alert">
-              {error}
-            </div>
-          )}
-
           <div className="messages" aria-live="polite">
+            {error && (
+              <div className="error-banner" role="alert">
+                {error}
+              </div>
+            )}
             {loading.workspace && (
-              <p className="muted compact">Loading workspace...</p>
+              <p className="muted compact">Đang tải workspace...</p>
             )}
             {messages.map((message) => (
               <article className={`message ${message.role}`} key={message.id}>
-                <span className="message-label">{message.role}</span>
-                <p>{message.content}</p>
-                {message.citations.length > 0 && (
+                <span className="message-label">{roleLabel(message.role)}</span>
+                <p
+                  className={
+                    message.role === "assistant" &&
+                    !expandedMessageIds.has(message.id)
+                      ? "message-text clamped"
+                      : "message-text"
+                  }
+                >
+                  {message.content}
+                </p>
+                {message.role === "assistant" &&
+                  message.content.length > COLLAPSIBLE_MESSAGE_LENGTH && (
+                    <button
+                      className="text-button"
+                      onClick={() => toggleMessageExpanded(message.id)}
+                      type="button"
+                    >
+                      {expandedMessageIds.has(message.id) ? "Thu gọn" : "Xem thêm"}
+                    </button>
+                  )}
+                {(message.citations || []).length > 0 && (
                   <div className="citation-list">
-                    {message.citations.map((citation) => (
+                    {message.citations.map((citation, index) => (
                       <button
-                        className="citation-chip"
+                        className={
+                          selectedCitation?.chunk_id === citation.chunk_id
+                            ? "citation-chip active"
+                            : "citation-chip"
+                        }
                         key={`${message.id}-${citation.chunk_id}`}
                         onClick={() => openCitation(citation)}
+                        title={citationLabel(citation)}
                         type="button"
                       >
-                        {citationLabel(citation)}
+                        [{index + 1}]{" "}
+                        {citation.page ? `p.${citation.page}` : `đoạn ${citation.chunk_id}`}
                       </button>
                     ))}
                   </div>
                 )}
                 {message.role === "assistant" &&
-                  message.citations.length === 0 && (
+                  (message.citations || []).length === 0 && (
                     <p className="message-note">
-                      No citations found. Try words that appear in enabled
-                      sources.
+                      Không tìm thấy trích dẫn. Hãy thử dùng từ xuất hiện trong
+                      nguồn đang bật.
                     </p>
                   )}
               </article>
             ))}
+            {loading.chat && (
+              <article className="message assistant pending">
+                <span className="message-label">Trợ lý</span>
+                <p className="message-text">Đang tìm trong nguồn...</p>
+              </article>
+            )}
             {hasNotebook && !messages.length && (
               <p className="muted empty-chat">
-                Ask a question after adding a source.
+                Thêm nguồn rồi đặt câu hỏi.
               </p>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <form className="composer" onSubmit={sendQuestion}>
             <textarea
-              aria-label="Question"
+              aria-label="Câu hỏi"
               disabled={!hasNotebook || loading.chat}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  event.currentTarget.form.requestSubmit();
+                }
+              }}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder={
-                hasNotebook ? "Ask about enabled sources" : "Select a notebook"
+                hasNotebook ? "Hỏi về nguồn đang bật" : "Chọn notebook"
               }
               rows="2"
               value={question}
             />
-            <button disabled={!hasNotebook || loading.chat} type="submit">
-              Send
+            <button
+              className="primary"
+              disabled={!hasNotebook || loading.chat}
+              type="submit"
+            >
+              Gửi
             </button>
           </form>
         </section>
 
-        <aside className="panel evidence-panel" aria-label="Evidence">
-          <p className="eyebrow">Evidence</p>
+        <aside className="panel evidence-panel" aria-label="Bằng chứng">
+          <p className="eyebrow">Bằng chứng</p>
           {loading.evidence ? (
-            <p className="muted">Loading evidence...</p>
+            <p className="muted">Đang tải bằng chứng...</p>
           ) : evidenceError ? (
             <p className="error-text" role="alert">
               {evidenceError}
@@ -597,26 +700,22 @@ function App() {
           ) : evidence ? (
             <article className="evidence-content">
               <h2>
-                {evidence.source_title} · chunk {evidence.id}
+                {evidence.source_title} · đoạn {evidence.id}
               </h2>
               <dl>
                 <div>
-                  <dt>Chunk</dt>
+                  <dt>Đoạn</dt>
                   <dd>{evidence.id}</dd>
-                </div>
-                <div>
-                  <dt>Source</dt>
-                  <dd>{evidence.source_id}</dd>
                 </div>
                 {evidence.page && (
                   <div>
-                    <dt>Page</dt>
+                    <dt>Trang</dt>
                     <dd>{evidence.page}</dd>
                   </div>
                 )}
               </dl>
               {!evidence.page && (
-                <p className="metadata-note">Page not available for TXT/MD.</p>
+                <p className="metadata-note">Không có metadata trang cho nguồn này.</p>
               )}
               <p>{evidence.text}</p>
             </article>
@@ -626,7 +725,7 @@ function App() {
               <p>{selectedCitation.quote}</p>
             </article>
           ) : (
-            <p className="muted">Select a citation to inspect its source chunk.</p>
+            <p className="muted">Chọn một trích dẫn để xem đoạn nguồn.</p>
           )}
         </aside>
       </section>

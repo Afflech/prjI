@@ -42,10 +42,17 @@ Start with:
 Backend:
 
 ```bash
+./scripts/backend.sh
+```
+
+Lần đầu setup backend:
+
+```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements.txt
-.venv/bin/uvicorn app.main:app --reload --port 8000 --app-dir backend
 ```
+
+Đổi port nếu cần, ví dụ: `PORT=8010 ./scripts/backend.sh`.
 
 Health check:
 
