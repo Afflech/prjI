@@ -1,6 +1,6 @@
 # Design - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-25
+Ngay cap nhat: 2026-10-28
 Trang thai: Phase 3/4 local MVP da Done voi SQLite, pasted/TXT/MD/PDF/PPTX
 source ingestion, retrieval-preview chat, citations, chunk evidence API, va
 frontend workspace 3 cot.
@@ -94,7 +94,10 @@ UI target gom 3 cot:
 - Chat: message history, composer, loading/error state.
 - Evidence: citation detail va chunk text.
 
-Phase 4 da implement UI day du cho local MVP. Browser automation chua co.
+Phase 4 da implement UI day du cho local MVP. Playwright E2E da duoc them cho
+flow notebook -> source -> chat -> citation -> evidence va disabled-source
+behavior; chua chay suite vi Chromium browser binary chua co san va khong tai
+duoc trong moi truong hien tai.
 
 ## 8. Non-goals For Early MVP
 

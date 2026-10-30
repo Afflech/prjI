@@ -87,9 +87,13 @@ Tien do:
   chips, evidence panel, va Vite API proxy da duoc implement.
 - Audit fixes cho UX no-citation, evidence state, composer layout, va reload
   state da duoc implement.
+- Playwright E2E flow da duoc them cho notebook -> pasted source -> chat ->
+  citation -> evidence va disabled-source behavior. Dependency da co; chua chay
+  suite vi Chromium browser binary chua tai duoc trong moi truong nay.
 - Build frontend, backend regression tests, va smoke API pass.
-- TXT/MD/PDF/PPTX citation/evidence flow da duoc verify. Retrieval quality va
-  browser automation van la known limitations.
+- TXT/MD/PDF/PPTX citation/evidence flow da duoc verify. Retrieval quality van
+  la known limitation; Playwright E2E da co nhung chua duoc chay vi thieu
+  Chromium browser binary.
 
 ## Phase 5 - Docker And Gemini
 

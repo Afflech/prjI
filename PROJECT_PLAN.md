@@ -1,6 +1,6 @@
 # Project Plan - Mini NotebookLM
 
-Ngay cap nhat: 2026-10-25
+Ngay cap nhat: 2026-10-28
 
 Tai lieu nay la source of truth cho viec trien khai Mini NotebookLM tu dau.
 Truoc moi dot code, update tien do, hoac audit, can doc file nay truoc de nam
@@ -172,10 +172,13 @@ Viec can lam:
 - Paste/upload source theo kha nang backend da co.
 - Enable/disable/delete source.
 - Chat voi citation chips va evidence panel.
+- Playwright browser automation cho flow notebook -> source -> chat -> citation
+  -> evidence va source enable/disable.
 
 Acceptance:
 
-- Manual browser flow: notebook -> source -> chat -> citation -> evidence.
+- Browser flow notebook -> source -> chat -> citation -> evidence chay duoc;
+  co automated E2E coverage cho flow chinh.
 - UI co loading/error state co ban va responsive toi thieu.
 
 Tien do 2026-10-25:
@@ -190,7 +193,16 @@ Tien do 2026-10-25:
   `git diff --check` deu pass.
 - Smoke API da pass cho TXT/MD/PDF/PPTX -> chat -> citation -> evidence.
 - Chap nhan known limitations: retrieval hash con tho, OCR optional fallback
-  ngoai base MVP, chua co browser automation.
+  ngoai base MVP.
+
+Tien do 2026-10-28:
+
+- Da them Playwright E2E cho tao notebook, paste source, chat, mo citation/evidence,
+  va xac nhan source disabled khong con duoc cite.
+- Playwright config tu khoi dong backend va Vite tren port rieng, dung SQLite
+  file rieng trong system temp, va xoa database sau run.
+- Playwright dependency da duoc cai tu cache; chua chay E2E vi Chromium chua co
+  san va moi truong khong tai duoc browser binary.
 
 ### Phase 5 - Docker va Gemini
 
@@ -264,7 +276,8 @@ Quy uoc trang thai:
 - Phase 2: backend smoke test notebook/source/chat mock.
 - Phase 3: retrieval/citation smoke test, TXT/MD/PDF/PPTX upload, Unicode
   retrieval, va regression tests cho failure paths.
-- Phase 4: manual browser checklist.
+- Phase 4: manual browser checklist and Playwright E2E for notebook/source/chat/
+  citation/evidence and disabled-source behavior.
 - Phase 5: Docker healthcheck va Gemini config check.
 - Phase 6: evaluation top-k hit rate va demo checklist.
 

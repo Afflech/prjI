@@ -9,8 +9,10 @@ chat against enabled sources with citations back to original chunks.
 Phase 4 frontend MVP is complete for local demo. The backend exposes notebook,
 pasted source, TXT/MD/PDF/PPTX raw upload, chunking, retrieval-preview chat,
 citations, and chunk evidence APIs backed by SQLite. The frontend now provides
-the main notebook/source/chat/evidence workspace. Docker and Gemini features are
-planned for later phases.
+the main notebook/source/chat/evidence workspace. Playwright browser tests are
+added for pasted text and Markdown upload, chat, citations, evidence, and
+disabled-source behavior. Docker and Gemini features are planned for later
+phases.
 
 Start with:
 
@@ -133,6 +135,20 @@ Build check:
 cd frontend
 npm run build
 ```
+
+Browser automation:
+
+```bash
+cd frontend
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+The E2E command starts its own backend and Vite server, uses an isolated SQLite
+database under the system temporary directory, and removes the database after
+the run. Set `E2E_PYTHON` if the backend virtualenv is not at `../.venv`; use
+`npm run test:e2e:headed` to watch the browser.
 
 ## Project Tracking
 

@@ -49,6 +49,17 @@ Trang thai: Phase 1-4 verified for local MVP; Phase 5-6 remain target checks.
 - Clicking citation opens evidence panel.
 - UI shows loading and error states.
 
+Automated browser flow:
+
+- Run `cd frontend && npm ci && npx playwright install chromium && npm run test:e2e`.
+- The Playwright config starts isolated backend/frontend servers and an
+  ephemeral SQLite database.
+- E2E flows create notebooks, add pasted text or upload Markdown, ask matching
+  questions, open citation evidence, and check that disabling a source removes
+  its citations.
+- The suite has been added and Playwright is installed; its first run still
+  needs a Chromium browser binary.
+
 ## Latest Validation
 
 - `.venv/bin/python -m pytest backend/tests` -> 13 passed.
